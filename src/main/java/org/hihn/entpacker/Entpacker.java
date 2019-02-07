@@ -57,6 +57,9 @@ public class Entpacker {
 		}
 		String dirname = tokens[0];
 		File destDir = prefixDir.resolve(Paths.get(dirname)).toFile();
+		if (destDir.exists()) {
+			return;
+		}
 		try {
 			ZipFile zipFile = new ZipFile(fullZipPath.toString());
 			zipFile.extractAll(destDir.toString());
