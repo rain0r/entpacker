@@ -12,14 +12,17 @@ import java.util.Properties;
 
 public class Entpacker {
 
-    private boolean deleteArchive;
-    private boolean logging;
+    private boolean deleteArchive = false;
+
+    private boolean logging = false;
 
     public static void main(String[] args) {
         new Entpacker(args);
     }
 
     Entpacker(String[] args) {
+        loadProperties();
+
         for (String pPath : args) {
             Path targetDir = new File(pPath).toPath();
             if (Files.isDirectory(targetDir)) {
@@ -48,6 +51,9 @@ public class Entpacker {
     }
 
     private void unzip(Path fullZipPath) throws IOException {
+
+        System.out.println("Unzipping: " + fullZipPath);
+
         Path prefixDir = fullZipPath.getParent();
         String basename = fullZipPath.toFile().getName();
         String[] tokens = basename.split("\\.(?=[^\\.]+$)");
@@ -59,17 +65,43 @@ public class Entpacker {
         try {
             ZipFile zipFile = new ZipFile(fullZipPath.toString());
             zipFile.extractAll(destDir.toString());
+            if (isDeleteArchive()){
+                destDir.delete();
+            }
         } catch (ZipException e) {
             e.printStackTrace();
         }
     }
 
-    private void loadProperties() throws IOException {
+    private void loadProperties() {
         Properties properties = new Properties();
-        try (InputStream is = getClass().getResourceAsStream("application.properties")) {
-            properties.load(is);
-            String foo = properties.getProperty("delete.archive", "false");
-            properties.getProperty("logging", "false");
+
+        try {
+            properties.load(Entpacker.class.getResourceAsStream("/application.properties"));
+
+            boolean deleteArchive = Boolean.valueOf(properties.getProperty("delete.archive"));
+            boolean logging = Boolean.valueOf(properties.getProperty("logging"));
+
+            setDeleteArchive(deleteArchive);
+            setLogging(logging);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+    }
+
+    public boolean isDeleteArchive() {
+        return deleteArchive;
+    }
+
+    public void setDeleteArchive(boolean deleteArchive) {
+        this.deleteArchive = deleteArchive;
+    }
+
+    public boolean isLogging() {
+        return logging;
+    }
+
+    public void setLogging(boolean logging) {
+        this.logging = logging;
     }
 }
