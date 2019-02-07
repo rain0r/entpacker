@@ -5,12 +5,12 @@ import net.lingala.zip4j.exception.ZipException;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Properties;
 
 public class Entpacker {
+
 
     private boolean deleteArchive = false;
 
@@ -51,9 +51,6 @@ public class Entpacker {
     }
 
     private void unzip(Path fullZipPath) throws IOException {
-
-        System.out.println("Unzipping: " + fullZipPath);
-
         Path prefixDir = fullZipPath.getParent();
         String basename = fullZipPath.toFile().getName();
         String[] tokens = basename.split("\\.(?=[^\\.]+$)");
@@ -62,11 +59,23 @@ public class Entpacker {
         }
         String dirname = tokens[0];
         File destDir = prefixDir.resolve(Paths.get(dirname)).toFile();
+        if (destDir.exists()) {
+            if (isLogging()) {
+                System.out.println("Dir: " + destDir + " exists. Skipping");
+            }
+            return;
+        }
         try {
+            if (isLogging()) {
+                System.out.println("Unzipping: " + fullZipPath);
+            }
             ZipFile zipFile = new ZipFile(fullZipPath.toString());
             zipFile.extractAll(destDir.toString());
-            if (isDeleteArchive()){
-                destDir.delete();
+            if (isDeleteArchive()) {
+                if (isLogging()) {
+                    System.out.println("Deleting archive: " + fullZipPath);
+                }
+                fullZipPath.toFile().delete();
             }
         } catch (ZipException e) {
             e.printStackTrace();
