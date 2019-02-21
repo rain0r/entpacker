@@ -35,7 +35,7 @@ public class Entpacker {
 				try {
 					scanDirForZips(targetDir);
 				} catch (IOException e) {
-					e.printStackTrace();
+					log(e.getMessage());
 				}
 			}
 		}
@@ -79,7 +79,7 @@ public class Entpacker {
 				fullZipPath.toFile().delete();
 			}
 		} catch (ZipException e) {
-			e.printStackTrace();
+			log(e.getMessage());
 		}
 	}
 
@@ -89,10 +89,8 @@ public class Entpacker {
 			IniFile iniFile = new IniFile(path.toString());
 			setDeleteArchive(Boolean.valueOf(iniFile.getString("main", "delete_archive", "false")));
 			setLogging(Boolean.valueOf(iniFile.getString("main", "logging", "false")));
-
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log("Could not read settings: " + e.getMessage());
 		}
 	}
 
@@ -102,12 +100,9 @@ public class Entpacker {
 
 	private void log(String pLogLine) {
 		if (isLogging()) {
-
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-
 			String logLine = sdf.format(new Date()) + " " + pLogLine;
 			System.out.println(logLine);
-
 			try {
 				Path logFile = Paths.get(getProgrammDir().toString(), "entpacker.log");
 				if (!logFile.toFile().exists()) {
@@ -116,7 +111,6 @@ public class Entpacker {
 				logLine += System.lineSeparator();
 				Files.write(logFile, logLine.getBytes(), StandardOpenOption.APPEND);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
