@@ -11,6 +11,8 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
@@ -99,17 +101,21 @@ public class Entpacker {
 		return Paths.get(System.getProperty("user.home"), ".config", "entpacker");
 	}
 
-	private void log(String txt) {
+	private void log(String pLogLine) {
 		if (isLogging()) {
-			System.out.println(txt);
+
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+
+			String logLine = sdf.format(new Date()) + " " + pLogLine;
+			System.out.println(logLine);
 
 			try {
 				Path logFile = Paths.get(getProgrammDir().toString(), "entpacker.log");
-
 				if (!logFile.toFile().exists()) {
 					logFile.toFile().createNewFile();
 				}
-				Files.write(logFile, txt.getBytes(), StandardOpenOption.APPEND);
+				logLine += System.lineSeparator();
+				Files.write(logFile, logLine.getBytes(), StandardOpenOption.APPEND);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
