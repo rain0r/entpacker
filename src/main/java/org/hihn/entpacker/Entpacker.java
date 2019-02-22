@@ -30,8 +30,8 @@ public class Entpacker {
 		for (String directory : args) {
 			Path dirPath = new File(directory).toPath();
 			if (Files.isDirectory(dirPath)) {
-				List<String> hugo = scanDirForZips(dirPath);
-				hugo.stream().parallel().forEach(entry -> unzip(Paths.get(entry)));
+				List<String> zipFileList = scanDirForZips(dirPath);
+				zipFileList.stream().parallel().forEach(entry -> unzip(Paths.get(entry)));
 			}
 		}
 	}
@@ -62,14 +62,14 @@ public class Entpacker {
 		}
 	}
 
-	private List<String> scanDirForZips(Path foo) {
-		List<String> collect = null;
-		try (Stream<Path> stream = Files.walk(foo, 1)) {
-			collect = stream.map(String::valueOf).filter(path -> path.endsWith(".zip")).collect(Collectors.toList());
+	private List<String> scanDirForZips(Path dirPath) {
+		List<String> zipFileList = null;
+		try (Stream<Path> stream = Files.walk(dirPath, 1)) {
+			zipFileList = stream.map(String::valueOf).filter(path -> path.endsWith(".zip")).collect(Collectors.toList());
 		} catch (IOException e) {
 			log(e.getMessage());
 		}
-		return collect;
+		return zipFileList;
 	}
 
 	private void loadProperties() {
