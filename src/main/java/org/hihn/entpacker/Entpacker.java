@@ -2,17 +2,15 @@ package org.hihn.entpacker;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardOpenOption;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
@@ -29,35 +27,16 @@ public class Entpacker {
 	Entpacker(String[] args) {
 		loadProperties();
 
-		for (String pPath : args) {
-			Path targetDir = new File(pPath).toPath();
-			if (Files.isDirectory(targetDir)) {
-				try {
-					scanDirForZips(targetDir);
-				} catch (IOException e) {
-					log(e.getMessage());
-				}
+		for (String directory : args) {
+			Path dirPath = new File(directory).toPath();
+			if (Files.isDirectory(dirPath)) {
+				List<String> hugo = scanDirForZips(dirPath);
+				hugo.stream().parallel().forEach(entry -> unzip(Paths.get(entry)));
 			}
 		}
 	}
 
-	private void scanDirForZips(Path foo) throws IOException {
-		String glob = "glob:**/*.zip";
-		String path = foo.toString();
-		final PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher(glob);
-		Files.walkFileTree(Paths.get(path), new SimpleFileVisitor<Path>() {
-			@Override
-			public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
-				if (pathMatcher.matches(path)) {
-					log("Unzipping: " + path);
-					unzip(path);
-				}
-				return FileVisitResult.CONTINUE;
-			}
-		});
-	}
-
-	private void unzip(Path fullZipPath) throws IOException {
+	private void unzip(Path fullZipPath) {
 		Path prefixDir = fullZipPath.getParent();
 		String basename = fullZipPath.toFile().getName();
 		String[] tokens = basename.split("\\.(?=[^\\.]+$)");
@@ -81,6 +60,16 @@ public class Entpacker {
 		} catch (ZipException e) {
 			log(e.getMessage());
 		}
+	}
+
+	private List<String> scanDirForZips(Path foo) {
+		List<String> collect = null;
+		try (Stream<Path> stream = Files.walk(foo, 1)) {
+			collect = stream.map(String::valueOf).filter(path -> path.endsWith(".zip")).collect(Collectors.toList());
+		} catch (IOException e) {
+			log(e.getMessage());
+		}
+		return collect;
 	}
 
 	private void loadProperties() {
