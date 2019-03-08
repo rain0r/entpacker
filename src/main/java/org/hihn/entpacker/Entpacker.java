@@ -31,7 +31,7 @@ public class Entpacker {
 			Path dirPath = new File(directory).toPath();
 			if (Files.isDirectory(dirPath)) {
 				List<String> zipFileList = scanDirForZips(dirPath);
-				zipFileList.stream().parallel().forEach(entry -> unzip(Paths.get(entry)));
+				zipFileList.parallelStream().forEach(entry -> unzip(Paths.get(entry)));
 			}
 		}
 	}
