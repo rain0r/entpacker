@@ -14,26 +14,29 @@ import java.util.stream.Stream;
 
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 
-public class Entpacker {
+@Command(name = "Entpacker", mixinStandardHelpOptions = true, version = "checksum 1.0", description = "Unzips archives in a directory.")
+public class Entpacker implements Runnable {
 
-	private boolean deleteArchive;
-	private boolean logging;
+	@Option(names = "--delete", description = "Delete the archive after successful extraction.")
+	private boolean deleteArchive = false;
 
-	public static void main(String[] args) {
-		new Entpacker(args);
-	}
+	@Option(names = "--log", description = "Print what's going on.")
+	private boolean logging = false;
 
-	Entpacker(String[] args) {
-		loadProperties();
+	@Option(names = "--end", description = "Process only files with this filename-ending (default: '.zip').")
+	private String end = ".zip";
 
-		for (String directory : args) {
-			Path dirPath = new File(directory).toPath();
-			if (Files.isDirectory(dirPath)) {
-				List<String> zipFileList = scanDirForZips(dirPath);
-				zipFileList.parallelStream().forEach(entry -> unzip(Paths.get(entry)));
-			}
-		}
+	@Parameters(description = "The directory containing zip archives.")
+	private List<File> directories;
+
+	public static void main(String... args) {
+		int exitCode = new CommandLine(new Entpacker()).execute(args);
+		System.exit(exitCode);
 	}
 
 	private void unzip(Path fullZipPath) {
@@ -65,22 +68,11 @@ public class Entpacker {
 	private List<String> scanDirForZips(Path dirPath) {
 		List<String> zipFileList = null;
 		try (Stream<Path> stream = Files.walk(dirPath, 1)) {
-			zipFileList = stream.map(String::valueOf).filter(path -> path.endsWith(".zip")).collect(Collectors.toList());
+			zipFileList = stream.map(String::valueOf).filter(path -> path.endsWith(end)).collect(Collectors.toList());
 		} catch (IOException e) {
 			log(e.getMessage());
 		}
 		return zipFileList;
-	}
-
-	private void loadProperties() {
-		Path path = Paths.get(getProgrammDir().toString(), "settings.ini");
-		try {
-			IniFile iniFile = new IniFile(path.toString());
-			setDeleteArchive(Boolean.valueOf(iniFile.getString("main", "delete_archive", "false")));
-			setLogging(Boolean.valueOf(iniFile.getString("main", "logging", "false")));
-		} catch (IOException e) {
-			log("Could not read settings: " + e.getMessage());
-		}
 	}
 
 	private Path getProgrammDir() {
@@ -119,5 +111,15 @@ public class Entpacker {
 
 	public void setLogging(boolean logging) {
 		this.logging = logging;
+	}
+
+	@Override
+	public void run() {
+		for (File file : directories) {
+			if (file.isDirectory()) {
+				List<String> zipFileList = scanDirForZips(file.toPath());
+				zipFileList.parallelStream().forEach(entry -> unzip(Paths.get(entry)));
+			}
+		}
 	}
 }
