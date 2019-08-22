@@ -115,6 +115,11 @@ public class Entpacker implements Runnable {
 
 	@Override
 	public void run() {
+		if (directories == null) {
+			System.out.println("No directories provided");
+			return;
+		}
+
 		for (File file : directories) {
 			if (file.isDirectory()) {
 				List<String> zipFileList = scanDirForZips(file.toPath());
