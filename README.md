@@ -1,19 +1,29 @@
 # entpacker
-Extract all zip-files in a directory. 
+Extracts all zip-files in a directory. 
 
-Build a single, executable jar:
+
+## Runing
+### As a single `jar`-file
 
 ```
 mvn clean compile assembly:single
-```
-
-Using:
-
-```
 java -jar entpacker-0.0.1-SNAPSHOT.jar /tmp/
 ```
 
-Arguments:
+### With `mvn`
+
+From the reposiroty base directory
+```
+mvn exec:java -q -Dexec.mainClass="org.hihn.entpacker.Entpacker" -Dexec.args="/foo/bar"
+```
+
+With `--end` parameter and from another directory
+```
+mvn exec:java -q -Dexec.mainClass="org.hihn.entpacker.Entpacker" -f /home/foo/pom.xml  -Dexec.args="'--end=_error.zip' '/foo/bar'"
+```
+
+
+## Arguments:
 
 ```
 Usage: Entpacker [-hV] [--delete] [--log] [--end=<end>] [<directories>...]
