@@ -10,6 +10,12 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
+	<scm>
+		<connection>scm:git:https://github.com/rain0r/entpacker.git</connection>
+		<developerConnection>scm:git:https://github.com/rain0r/entpacker.git</developerConnection>
+		<url>https://github.com/rain0r/entpacker</url>
+		<tag>HEAD</tag>
+	</scm>
 	<build>
 		<pluginManagement>
 			<plugins>
